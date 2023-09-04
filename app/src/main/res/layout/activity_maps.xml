@@ -4,13 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MapsActivity">
+    tools:context=".MapsActivity"
+    android:background="@color/primary">
 
     <fragment
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="690dp"
         tools:context=".MapsActivity" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -22,7 +23,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="90dp"
         android:scaleType="center"
         android:src="@drawable/ic_my_location"
         app:backgroundTint="@color/white"
@@ -32,5 +33,21 @@
         app:maxImageSize="40dp"
         app:useCompatPadding="true" />
 
+    <RelativeLayout
+        android:id="@+id/bottomLayout"
+        android:layout_width="match_parent"
+        android:layout_height="75dp"
+        android:layout_alignParentBottom="true"
+        android:background="@color/white">
 
+        <Button
+            android:id="@+id/openWebsiteButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Suggest an Addition"
+            android:layout_centerHorizontal="true"
+            android:layout_margin="16dp"
+            android:onClick="onSuggestAdditionClick" />
+
+    </RelativeLayout>
 </RelativeLayout>

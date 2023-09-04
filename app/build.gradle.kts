@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
+    id("com.google.firebase.crashlytics")
     id("com.google.gms.google-services")
 }
 
@@ -36,6 +37,7 @@ android {
 dependencies {
     implementation(platform("com.google.firebase:firebase-bom:32.2.3"))
     implementation("com.google.firebase:firebase-analytics-ktx")
+    implementation("com.google.firebase:firebase-crashlytics-ktx")
 
     implementation ("com.google.android.gms:play-services-location:21.0.1")
 
