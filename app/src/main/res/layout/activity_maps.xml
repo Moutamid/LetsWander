@@ -46,8 +46,7 @@
             android:layout_height="wrap_content"
             android:text="Suggest an Addition"
             android:layout_centerHorizontal="true"
-            android:layout_margin="16dp"
-            android:onClick="onSuggestAdditionClick" />
+            android:layout_margin="16dp" />
 
     </RelativeLayout>
 </RelativeLayout>

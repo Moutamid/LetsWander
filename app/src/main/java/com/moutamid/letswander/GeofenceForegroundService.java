@@ -68,13 +68,13 @@ public class GeofenceForegroundService extends Service implements TextToSpeech.O
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         builder.setContentIntent(pendingIntent);
 
-        // Start the foreground service with the notification
+        // Always start foreground service
         startForeground(NOTIFICATION_ID, builder.build());
     }
 
     private void handleGeofenceEvent(Intent intent) {
         GeofencingEvent geofencingEvent = GeofencingEvent.fromIntent(intent);
-        if (geofencingEvent.hasError()) {
+        if (geofencingEvent == null) {
             return;
         }
 

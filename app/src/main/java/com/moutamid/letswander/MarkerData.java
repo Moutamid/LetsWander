@@ -6,15 +6,15 @@ public class MarkerData {
     private String markerId;
     private String title;
     private String description;
-    private Boolean isStar;
+    private Boolean star;
 
-    public MarkerData(String markerId, double latitude, double longitude, String title, String description, Boolean isStar) {
+    public MarkerData(String markerId, double latitude, double longitude, String title, String description, Boolean star) {
         this.markerId = markerId;
         this.latitude = latitude;
         this.longitude = longitude;
         this.title = title;
         this.description = description;
-        this.isStar = isStar;
+        this.star = star;
     }
 
     public double getLatitude() {
@@ -46,10 +46,10 @@ public class MarkerData {
     }
 
     public Boolean getStar() {
-        return isStar;
+        return star;
     }
 
     public void setStar(Boolean star) {
-        isStar = star;
+        this.star = star;
     }
 }

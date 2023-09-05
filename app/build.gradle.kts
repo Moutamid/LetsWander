@@ -15,7 +15,7 @@ android {
         targetSdk = 33
         versionCode = 1
         versionName = "1.0"
-
+        setProperty("archivesBaseName", "LetsWander-$versionName")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

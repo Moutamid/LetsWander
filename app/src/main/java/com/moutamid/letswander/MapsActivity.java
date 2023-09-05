@@ -2,9 +2,9 @@ package com.moutamid.letswander;
 
 import android.Manifest;
 import android.app.ActivityManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.app.PendingIntent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
@@ -12,16 +12,14 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
 import android.speech.tts.TextToSpeech;
-import com.google.android.gms.location.FusedLocationProviderClient;
-
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.fragment.app.FragmentActivity;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.Geofence;
@@ -35,27 +33,28 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.moutamid.letswander.databinding.ActivityMapsBinding;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, TextToSpeech.OnInitListener {
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, TextToSpeech.OnInitListener {
     private GoogleMap mMap;
     private GeofencingClient geofencingClient;
-    Intent mServiceIntent;
+    private Intent mServiceIntent;
     private GeofenceForegroundService mYourService;
     private static final int PERMISSION_REQUEST_CODE = 123;
-    private ActivityMapsBinding binding;
     private FusedLocationProviderClient fusedLocationClient;
     private LocationCallback locationCallback;
     private List<Marker> markerList = new ArrayList<>();
@@ -65,15 +64,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_maps);
+
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
 
         Button suggestPlace = findViewById(R.id.openWebsiteButton);
-
-        binding = ActivityMapsBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
-
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
@@ -87,7 +83,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         fetchMarkerDataFromDatabase();
         requestLocationPermissions();
 
-        /*suggestPlace.setOnClickListener(new View.OnClickListener() {
+        suggestPlace.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String websiteUrl = "https://forms.gle/BphPVbpQRspri5gr9";
@@ -98,7 +94,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     Toast.makeText(getApplicationContext(), "No web browser app found", Toast.LENGTH_SHORT).show();
                 }
             }
-        });*/
+        });
     }
 
     @Override
@@ -110,6 +106,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onDestroy();
     }
 
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+        mMap.setOnMarkerClickListener(this);
+    }
+
     private void requestLocationPermissions() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -118,12 +120,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         } else {
             startGeofenceService();
         }
-    }
-
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
-        mMap.setOnMarkerClickListener(this);
     }
 
     private void requestLocationUpdates() {
@@ -170,16 +166,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     String description = markerSnapshot.child("description").getValue(String.class);
                     double latitude = markerSnapshot.child("latitude").getValue(Double.class);
                     double longitude = markerSnapshot.child("longitude").getValue(Double.class);
+                    Boolean star = markerSnapshot.child("star").getValue(Boolean.class);
 
                     LatLng coordinate = new LatLng(latitude, longitude);
 
+                    BitmapDescriptor markerIcon;
+                    if (star) {
+                        markerIcon = BitmapDescriptorFactory.fromResource(R.drawable.green_star_marker);
+                    } else {
+                        markerIcon = BitmapDescriptorFactory.fromResource(R.drawable.blue_dot_marker);
+                    }
                     Marker marker = mMap.addMarker(new MarkerOptions()
                             .position(coordinate)
                             .title(title)
-                            .snippet(description));
+                            .snippet(description)
+                            .icon(markerIcon));
 
                     marker.setTag(description);
-                    markerList.add(marker);
+
+                    if (!star) {
+                        markerList.add(marker);
+                    }
                 }
             }
 
