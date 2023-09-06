@@ -52,17 +52,23 @@
         android:paddingBottom="4dp"
         android:text="Location: " />
 
-    <TextView
-        android:id="@+id/dialog_description"
-        android:layout_width="wrap_content"
+    <ScrollView
+        android:layout_width="match_parent"
         android:layout_height="100dp"
-        android:textSize="12sp"
-        android:scrollbars="vertical"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingTop="4dp"
-        android:paddingBottom="16dp"
-        android:text="Description: " />
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="16dp"
+        android:scrollbars="vertical">
+
+        <TextView
+            android:id="@+id/dialog_description"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:textSize="14sp"
+            android:text="Description: " />
+
+    </ScrollView>
 
     <!-- Ok button -->
     <Button
