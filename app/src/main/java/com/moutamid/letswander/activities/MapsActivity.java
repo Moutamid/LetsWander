@@ -6,6 +6,10 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.PorterDuffColorFilter;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
@@ -16,6 +20,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -109,13 +114,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        // Check location permission
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             mMap.setMyLocationEnabled(true);
             mMap.getUiSettings().setMyLocationButtonEnabled(true);
         } else {
-            // Request location permission
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     1);
@@ -126,20 +129,21 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             Boolean star = markerData.getStar();
 
-            // Determine the marker icon based on the 'star' property
+            int width = 48;
+            int height = 48;
+
             BitmapDescriptor markerIcon;
             if (star != null && star.booleanValue()) {
-                markerIcon = BitmapDescriptorFactory.fromResource(R.drawable.green_star_marker);
+                markerIcon = vectorToBitmap(R.drawable.baseline_star_rate_24, width, height);
             } else {
-                markerIcon = BitmapDescriptorFactory.fromResource(R.drawable.blue_dot_marker);
+                markerIcon = vectorToBitmap(R.drawable.baseline_circle_24, width, height);
             }
 
             MarkerOptions markerOptions = new MarkerOptions()
                     .position(location)
                     .title(markerData.getTitle())
                     .snippet(markerData.getDescription())
-                    .icon(markerIcon)
-                    .anchor(0.2f, 0.2f);; // Set the marker icon here
+                    .icon(markerIcon);
 
             Marker marker = mMap.addMarker(markerOptions);
 
@@ -153,6 +157,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.setOnMarkerClickListener(this);
         moveToCurrentUserLocation();
     }
+
+    private BitmapDescriptor vectorToBitmap(@DrawableRes int vectorResourceId, int width, int height) {
+        Drawable vectorDrawable = ContextCompat.getDrawable(this, vectorResourceId);
+        vectorDrawable.setBounds(0, 0, width, height);
+
+        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+
+        Canvas canvas = new Canvas(bitmap);
+        vectorDrawable.draw(canvas);
+
+        return BitmapDescriptorFactory.fromBitmap(bitmap);
+    }
+
 
     @Override
     public boolean onMarkerClick(Marker marker) {
@@ -237,8 +254,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         TextView dialogDescription = dialogView.findViewById(R.id.dialog_description);
 
         dialogTitle.setText(title);
-        dialogLocation.setText("Location: " + location.latitude + ", " + location.longitude);
-        dialogDescription.setText("Description: " + description);
+        dialogLocation.setText(location.latitude + ", " + location.longitude);
+        dialogDescription.setText(description);
 
         builder.setView(dialogView);
 
