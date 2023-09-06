@@ -33,7 +33,7 @@
 
 
         <receiver
-            android:name=".Restarter"
+            android:name=".service.Restarter"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
