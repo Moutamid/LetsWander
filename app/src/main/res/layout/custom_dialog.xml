@@ -55,8 +55,9 @@
     <TextView
         android:id="@+id/dialog_description"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="100dp"
         android:textSize="12sp"
+        android:scrollbars="vertical"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
         android:paddingTop="4dp"
