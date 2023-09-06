@@ -1,20 +1,23 @@
-package com.moutamid.letswander;
+package com.moutamid.letswander.models;
 
 public class MarkerData {
     private double latitude;
     private double longitude;
-    private String markerId;
+    private String id;
     private String title;
     private String description;
     private Boolean star;
 
-    public MarkerData(String markerId, double latitude, double longitude, String title, String description, Boolean star) {
-        this.markerId = markerId;
+    public MarkerData(String id, double latitude, double longitude, String title, String description, Boolean star) {
+        this.id = id;
         this.latitude = latitude;
         this.longitude = longitude;
         this.title = title;
         this.description = description;
         this.star = star;
+    }
+
+    public MarkerData() {
     }
 
     public double getLatitude() {
@@ -29,12 +32,12 @@ public class MarkerData {
         return title;
     }
 
-    public String getMarkerId() {
-        return markerId;
+    public String getId() {
+        return id;
     }
 
-    public void setMarkerId(String markerId) {
-        this.markerId = markerId;
+    public void setId(String markerId) {
+        this.id = id;
     }
 
     public String getDescription() {

@@ -5,4 +5,9 @@
     </style>
 
     <style name="Theme.LetsWander" parent="Base.Theme.LetsWander" />
+
+    <style name="SplashTheme" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowFullscreen">true</item>
+    </style>
+
 </resources>

@@ -7,7 +7,7 @@
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS" />
 
     <application
@@ -21,6 +21,17 @@
         android:theme="@style/Theme.LetsWander"
         tools:targetApi="31">
 
+        <activity
+            android:name=".activities.SplashActivity"
+            android:theme="@style/SplashTheme"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+
         <receiver
             android:name=".Restarter"
             android:enabled="true"
@@ -32,7 +43,7 @@
         </receiver>
 
         <service
-            android:name=".GeofenceForegroundService"
+            android:name=".service.GeofenceForegroundService"
             android:enabled="true" />
 
         <meta-data
@@ -40,15 +51,9 @@
             android:value="AIzaSyAuIxeEpQQgN84bBitDRksZTcLHtIKSAeY" />
 
         <activity
-            android:name=".MapsActivity"
-            android:exported="true" >
-        <intent-filter>
-            <action android:name="android.intent.action.MAIN" />
-
-            <category android:name="android.intent.category.LAUNCHER" />
-        </intent-filter>
+            android:name=".activities.MapsActivity"
+            android:exported="true">
         </activity>
-
     </application>
 
 </manifest>

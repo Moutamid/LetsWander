@@ -4,34 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MapsActivity"
-    android:background="@color/primary">
+    tools:context=".activities.MapsActivity">
 
     <fragment
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="690dp"
-        tools:context=".MapsActivity" />
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/btnReturnToLocation"
-        android:layout_width="54dp"
-        android:layout_height="54dp"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="90dp"
-        android:scaleType="center"
-        android:src="@drawable/ic_my_location"
-        app:backgroundTint="@color/white"
-        app:elevation="6dp"
-        app:layout_anchor="@id/map"
-        app:layout_anchorGravity="bottom|end"
-        app:maxImageSize="40dp"
-        app:useCompatPadding="true" />
+        tools:context=".activities.MapsActivity" />
 
     <RelativeLayout
         android:id="@+id/bottomLayout"
@@ -44,9 +24,14 @@
             android:id="@+id/openWebsiteButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Suggest an Addition"
             android:layout_centerHorizontal="true"
-            android:layout_margin="16dp" />
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
+            android:minHeight="48dp"
+            android:textColor="@color/black"
+            android:text="Suggest an Addition" />
 
     </RelativeLayout>
 </RelativeLayout>
