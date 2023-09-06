@@ -4,35 +4,37 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
+    android:backgroundTint="@color/white"
     android:background="@drawable/rounded_dialog_background">
 
-    <LinearLayout
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:background="@color/primary">
 
-        <!-- Logo in the top left corner -->
-        <ImageView
-            android:id="@+id/dialog_logo"
-            android:layout_width="70dp"
-            android:layout_height="70dp"
-            android:layout_marginTop="16dp"
-            android:src="@drawable/logo"
-            android:layout_gravity="center_vertical"
-            android:layout_margin="16dp" />
+    <ImageView
+        android:id="@+id/dialog_logo"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="16dp"
+        android:src="@drawable/baseline_share_location_24"
+        android:tint="@color/black"
+        android:layout_gravity="center"
+        android:layout_margin="16dp" />
+
+    </androidx.appcompat.widget.Toolbar>
 
         <TextView
             android:id="@+id/dialog_title"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:textColor="@color/black"
             android:textSize="20sp"
             android:layout_gravity="center_vertical"
             android:textStyle="bold"
             android:padding="12dp"
             android:text="Title" />
-
-    </LinearLayout>
 
     <View
         android:layout_width="match_parent"
@@ -41,7 +43,7 @@
 
     <TextView
         android:id="@+id/dialog_location"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="16sp"
         android:paddingStart="16dp"
@@ -52,9 +54,9 @@
 
     <TextView
         android:id="@+id/dialog_description"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="16sp"
+        android:textSize="12sp"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
         android:paddingTop="4dp"
@@ -68,7 +70,8 @@
         android:layout_height="40dp"
         android:text="OK"
         android:textSize="16sp"
+        android:layout_margin="8dp"
         android:background="@drawable/rounded_button"
-        android:layout_gravity="center_horizontal" />
+        android:layout_gravity="right" />
 
 </LinearLayout>
