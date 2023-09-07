@@ -29,18 +29,18 @@ import java.util.List;
 
 public class GeofenceForegroundService extends Service {
     private static final String TAG = "GeofenceForegroundService";
-    private static final int NOTIFICATION_ID = 123;
+    private static final String NOTIFICATION_CHANNEL_ID = "example.permanence";
     private TextToSpeech textToSpeech;
     private List<MarkerData> markerDataList;
     public static final String ACTION_GEOFENCE_TRANSITION = "com.moutamid.letswander.GEOFENCE_TRANSITION";
 
-    @Override
     public void onCreate() {
         super.onCreate();
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O)
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O) {
             startMyOwnForeground();
-        else
+        } else {
             startForeground(1, new Notification());
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -54,14 +54,6 @@ public class GeofenceForegroundService extends Service {
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         assert manager != null;
         manager.createNotificationChannel(chan);
-
-        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID);
-        Notification notification = notificationBuilder.setOngoing(true)
-                .setContentTitle("App is running in background")
-                .setPriority(NotificationManager.IMPORTANCE_MIN)
-                .setCategory(Notification.CATEGORY_SERVICE)
-                .build();
-        startForeground(2, notification);
     }
 
     @Override
@@ -72,19 +64,32 @@ public class GeofenceForegroundService extends Service {
                 handleGeofenceTransition(intent);
             }
         }
-
-        startForeground(NOTIFICATION_ID, createNotification());
+        Notification notification = createNotification();
+        startForeground(2, notification);
 
         return START_STICKY;
     }
+
+    private Notification createNotification() {
+
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID);
+        Notification notification = notificationBuilder.setOngoing(true)
+                .setContentTitle("App is running in the background")
+                .setPriority(NotificationManager.IMPORTANCE_MIN)
+                .setCategory(Notification.CATEGORY_SERVICE)
+                .build();
+        return notification;
+    }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
 
         Intent broadcastIntent = new Intent();
-        broadcastIntent.setAction("restartservice");
+        broadcastIntent.setAction("restartService");
         broadcastIntent.setClass(this, Restarter.class);
         this.sendBroadcast(broadcastIntent);
+        Log.i("Service status", "Restarted");
     }
 
     @Override
@@ -103,6 +108,7 @@ public class GeofenceForegroundService extends Service {
                 SystemClock.elapsedRealtime() + 1000,
                 restartServicePendingIntent);
         super.onTaskRemoved(rootIntent);
+        Log.i("Service status", "Restarted");
     }
 
     @Nullable
@@ -111,47 +117,28 @@ public class GeofenceForegroundService extends Service {
         return null;
     }
 
-    private Notification createNotification() {
-        Intent notificationIntent = new Intent(this, MapsActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "channel_id")
-                .setContentTitle("GeofenceForegroundService")
-                .setContentText("Running in background")
-                .setContentIntent(pendingIntent);
-
-        return builder.build();
-    }
 
     private void handleGeofenceTransition(Intent intent) {
-        // Check if the intent contains geofencing transition data
         if (GeofencingEvent.fromIntent(intent) != null) {
             GeofencingEvent geofencingEvent = GeofencingEvent.fromIntent(intent);
 
             if (geofencingEvent.hasError()) {
                 int errorCode = geofencingEvent.getErrorCode();
-                Log.e(TAG, "Geofencing error: " + errorCode);
                 return;
             }
 
-            // Get the transition type (ENTER, EXIT, DWELL)
             int transitionType = geofencingEvent.getGeofenceTransition();
 
-            // Get the triggering geofences
             List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
 
-            // Check if it's a GEOFENCE_TRANSITION_ENTER event
             if (transitionType == Geofence.GEOFENCE_TRANSITION_ENTER) {
-                // Find the corresponding marker description and speak it
                 for (Geofence geofence : triggeringGeofences) {
                     String geofenceRequestId = geofence.getRequestId();
 
-                    // Iterate through your markerDataList to find the matching marker
                     for (MarkerData markerData : markerDataList) {
                         if (markerData.getId().equals(geofenceRequestId)) {
-                            // Speak the description using TTS
                             textToSpeech.speak(markerData.getDescription(), TextToSpeech.QUEUE_FLUSH, null, null);
-                            break; // Exit the loop once a matching marker is found
+                            break;
                         }
                     }
                 }

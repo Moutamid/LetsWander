@@ -11,8 +11,11 @@ import android.graphics.Canvas;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.View;
@@ -61,7 +64,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final int REQUEST_LOCATION_PERMISSION = 1;
     private GoogleMap mMap;
     Intent mServiceIntent;
-    private GeofenceForegroundService mYourService;
+    private GeofenceForegroundService mService  ;
     private String descriptionToSpeak;
     private GeofencingClient geofencingClient;
     private TextToSpeech textToSpeech;
@@ -77,6 +80,21 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         geofencingClient = LocationServices.getGeofencingClient(this);
         textToSpeech = new TextToSpeech(this, this);
+
+        PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        boolean isIgnoringBatteryOptimizations = false;
+        if (powerManager != null) {
+            isIgnoringBatteryOptimizations = powerManager.isIgnoringBatteryOptimizations(getPackageName());
+        }
+
+        if (!isIgnoringBatteryOptimizations) {
+            // Request the user to exempt the app from battery optimizations
+            Intent intent = new Intent();
+            intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+            intent.setData(Uri.parse("package:" + getPackageName()));
+            startActivity(intent);
+        }
+
 
         markersRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -101,6 +119,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                         .findFragmentById(R.id.map);
                 mapFragment.getMapAsync(MapsActivity.this);
+
+                startInitService();
             }
 
             @Override
@@ -108,6 +128,29 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             }
         });
+    }
+
+    private void startInitService() {
+        mService = new GeofenceForegroundService();
+        mServiceIntent = new Intent(this, mService.getClass());
+        if (!isMyServiceRunning(mService.getClass())) {
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O)
+                startForegroundService(mServiceIntent);
+            else startService(mServiceIntent);
+            Log.i("Service status", "started");
+        }
+    }
+
+    private boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                Log.i("Service status", "Running");
+                return true;
+            }
+        }
+        Log.i("Service status", "Not running");
+        return false;
     }
 
     @Override
@@ -148,7 +191,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Marker marker = mMap.addMarker(markerOptions);
 
             if (star != null && !star) {
-                Geofence geofence = createGeofence(location, 12000);
+                Geofence geofence = createGeofence(location, 12);
                 GeofencingRequest geofencingRequest = createGeofencingRequest(geofence);
                 addGeofence(geofencingRequest);
             }
@@ -239,7 +282,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private PendingIntent getGeofencePendingIntent() {
-        // Create an Intent to handle the geofence transitions
         Intent intent = new Intent(this, GeofenceForegroundService.class);
         return PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
