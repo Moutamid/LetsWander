@@ -2,13 +2,11 @@ package com.moutamid.letswander.activities;
 
 import android.Manifest;
 import android.app.ActivityManager;
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.net.Uri;
@@ -31,9 +29,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingClient;
-import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -44,7 +40,6 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -56,19 +51,19 @@ import com.moutamid.letswander.R;
 import com.moutamid.letswander.service.GeofenceForegroundService;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, TextToSpeech.OnInitListener {
 
     private static final int REQUEST_LOCATION_PERMISSION = 1;
     private GoogleMap mMap;
+    public static final String ACTION_REQUEST_LOCATION_PERMISSION = "com.moutamid.letswander.REQUEST_LOCATION_PERMISSION";
+
     Intent mServiceIntent;
     private GeofenceForegroundService mService  ;
     private String descriptionToSpeak;
-    private GeofencingClient geofencingClient;
     private TextToSpeech textToSpeech;
-    private List<MarkerData> markerDataList;
+    private static ArrayList<MarkerData> markerDataList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,7 +73,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         DatabaseReference markersRef = Constants.databaseReference().child("Markers");
         markerDataList = new ArrayList<>();
 
-        geofencingClient = LocationServices.getGeofencingClient(this);
+
         textToSpeech = new TextToSpeech(this, this);
 
         PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
@@ -93,12 +88,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
             intent.setData(Uri.parse("package:" + getPackageName()));
             startActivity(intent);
-        }
 
+            initializeGeofenceService();
+        }
 
         markersRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                markerDataList = new ArrayList<>();
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     MarkerData firebaseMarkerData = snapshot.getValue(MarkerData.class);
 
@@ -113,6 +110,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     );
 
                     markerDataList.add(markerData);
+
                 }
 
                 // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -128,6 +126,23 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             }
         });
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+
+        if (intent != null && intent.getAction() != null) {
+            if (intent.getAction().equals(ACTION_REQUEST_LOCATION_PERMISSION)) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION_PERMISSION);
+            }
+        }
+    }
+
+    private void initializeGeofenceService() {
+        Intent geofenceServiceIntent = new Intent(this, GeofenceForegroundService.class);
+        startService(geofenceServiceIntent);
+        Log.d("intent passing done", "intent pass hogya");
     }
 
     private void startInitService() {
@@ -154,7 +169,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
-    public void onMapReady(GoogleMap googleMap) {
+    public void onMapReady(@NonNull GoogleMap googleMap) {
         mMap = googleMap;
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -188,15 +203,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     .snippet(markerData.getDescription())
                     .icon(markerIcon);
 
-            Marker marker = mMap.addMarker(markerOptions);
-
-            if (star != null && !star) {
-                Geofence geofence = createGeofence(location, 12);
-                GeofencingRequest geofencingRequest = createGeofencingRequest(geofence);
-                addGeofence(geofencingRequest);
-            }
+            mMap.addMarker(markerOptions);
         }
-
         mMap.setOnMarkerClickListener(this);
         moveToCurrentUserLocation();
     }
@@ -241,49 +249,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION_PERMISSION);
         }
-    }
-
-    private Geofence createGeofence(LatLng location, int radiusInMeters) {
-        String geofenceId = "your_geofence_id";
-        Geofence.Builder builder = new Geofence.Builder();
-        builder.setRequestId(geofenceId)
-                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER);
-        builder.setCircularRegion(location.latitude, location.longitude, radiusInMeters);
-        builder.setExpirationDuration(Geofence.NEVER_EXPIRE);
-        return builder.build();
-    }
-
-    private GeofencingRequest createGeofencingRequest(Geofence geofence) {
-        GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
-        builder.addGeofence(geofence);
-        builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
-        return builder.build();
-    }
-
-    private void addGeofence(GeofencingRequest geofencingRequest) {
-        GeofencingClient geofencingClient = LocationServices.getGeofencingClient(this);
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            geofencingClient.addGeofences(geofencingRequest, getGeofencePendingIntent())
-                    .addOnSuccessListener(this, new OnSuccessListener<Void>() {
-                        @Override
-                        public void onSuccess(Void aVoid) {
-                            Log.d("Geofence", "Successfully Added");
-                        }
-                    })
-                    .addOnFailureListener(this, new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Log.d("Geofence", "Failed to Add");
-                        }
-                    });
-        } else {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION_PERMISSION);
-        }
-    }
-
-    private PendingIntent getGeofencePendingIntent() {
-        Intent intent = new Intent(this, GeofenceForegroundService.class);
-        return PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     private void showCustomDialog(String title, LatLng location, String description) {
@@ -334,4 +299,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Toast.makeText(this, "Text-to-speech initialization failed.", Toast.LENGTH_SHORT).show();
         }
     }
+
+    //..........................................................
 }
