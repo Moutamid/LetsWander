@@ -17,6 +17,7 @@ import android.os.SystemClock;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeech.OnInitListener;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -47,6 +48,7 @@ public class GeofenceForegroundService extends Service {
     private static final String TAG = "GeofenceForegroundService";
     private static final String NOTIFICATION_CHANNEL_ID = "example.permanence";
     private TextToSpeech textToSpeech;
+    private String descriptionToSpeak;
     private GeofencingClient geofencingClient;
     private List<MarkerData> markerDataList;
     public static final String ACTION_GEOFENCE_TRANSITION = "com.moutamid.letswander.GEOFENCE_TRANSITION";
@@ -54,7 +56,7 @@ public class GeofenceForegroundService extends Service {
     public void onCreate() {
         super.onCreate();
         geofencingClient = LocationServices.getGeofencingClient(this);
-        initializeTextToSpeech(); // Initialize Text-to-Speech
+
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O) {
             startMyOwnForeground();
         } else {
@@ -62,21 +64,21 @@ public class GeofenceForegroundService extends Service {
         }
     }
 
-    // Initialize Text-to-Speech
-    private void initializeTextToSpeech() {
-        textToSpeech = new TextToSpeech(getApplicationContext(), new OnInitListener() {
-            @Override
-            public void onInit(int status) {
-                if (status == TextToSpeech.SUCCESS) {
-                    int result = textToSpeech.setLanguage(Locale.getDefault());
-                    if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                        Log.e(TAG, "TTS language not supported");
-                    }
-                } else {
-                    Log.e(TAG, "TTS initialization failed");
+    public void onInit(int status) {
+        if (status == TextToSpeech.SUCCESS) {
+            int result = textToSpeech.setLanguage(Locale.US);
+
+            if (result == TextToSpeech.LANG_MISSING_DATA ||
+                    result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                Toast.makeText(this, "Text-to-speech language not supported.", Toast.LENGTH_SHORT).show();
+            } else {
+                if (descriptionToSpeak != null && !descriptionToSpeak.isEmpty()) {
+                    textToSpeech.speak(descriptionToSpeak, TextToSpeech.QUEUE_FLUSH, null, null);
                 }
             }
-        });
+        } else {
+            Toast.makeText(this, "Text-to-speech initialization failed.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -95,6 +97,7 @@ public class GeofenceForegroundService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null) {
+            Log.d("Intent onStart", "Chal gya" + intent.getAction());
             String action = intent.getAction();
             if (ACTION_GEOFENCE_TRANSITION.equals(action)) {
                 handleGeofenceTransition(intent);
@@ -151,18 +154,17 @@ public class GeofenceForegroundService extends Service {
 
     private void setUpGeofences() {
         if (markerDataList != null) {
-            Log.d("marker datas", "not null");
+            Log.d("GeofenceIssue", "not null");
             for (MarkerData markerData : markerDataList) {
                 if (!markerData.getStar()) {
-                    Log.d("marker datas", "ID : " + markerData.getId());
+                    Log.d("GeofenceIssue", "ID : " + markerData.getId());
                     Geofence geofence = createGeofence(markerData, 12);
                     GeofencingRequest geofencingRequest = createGeofencingRequest(geofence);
                     addGeofence(geofencingRequest);
                 }
-                Log.d("marker datas", "it is star");
             }
         }
-        Log.d("marker datas", "null");
+        Log.d("GeofenceIssue", "null");
     }
 
     private GeofencingRequest createGeofencingRequest(Geofence geofence) {
@@ -205,7 +207,7 @@ public class GeofenceForegroundService extends Service {
                 .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER);
         builder.setCircularRegion(markerData.getLatitude(), markerData.getLongitude(), radiusInMeters);
         builder.setExpirationDuration(Geofence.NEVER_EXPIRE);
-        Log.d("createGeofence", "createGeofence : " + geofenceId);
+        Log.d("GeofenceIssue", "createGeofence : " + geofenceId);
         return builder.build();
     }
 
@@ -281,7 +283,10 @@ public class GeofenceForegroundService extends Service {
 
                     for (MarkerData markerData : markerDataList) {
                         if (markerData.getId().equals(geofenceRequestId)) {
-                            textToSpeech.speak(markerData.getDescription(), TextToSpeech.QUEUE_FLUSH, null, null);
+                            Toast.makeText(this, "Entered", Toast.LENGTH_SHORT).show();
+                            Log.d("TTS Geofence" , "Entered");
+                            descriptionToSpeak = markerData.getDescription(); // Set the description to speak
+                            onInit(TextToSpeech.SUCCESS);
                             break;
                         }
                     }
