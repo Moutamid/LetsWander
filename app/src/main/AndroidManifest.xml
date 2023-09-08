@@ -31,26 +31,17 @@
             </intent-filter>
         </activity>
 
-
-        <receiver
-            android:name=".service.Restarter"
-            android:enabled="true"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="restartService" />
-            </intent-filter>
-        </receiver>
-
-        <service
-            android:name=".service.GeofenceForegroundService"
-            android:enabled="true" />
-
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyAuIxeEpQQgN84bBitDRksZTcLHtIKSAeY" />
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
+
+        <receiver
+            android:name=".GeofenceBroadcastReciever"
+            android:enabled="true"
+            android:exported="true" />
 
         <activity
             android:name=".activities.MapsActivity"

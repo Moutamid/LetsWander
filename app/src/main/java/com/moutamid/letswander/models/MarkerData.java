@@ -1,5 +1,7 @@
 package com.moutamid.letswander.models;
 
+import android.annotation.SuppressLint;
+
 public class MarkerData {
     private double latitude;
     private double longitude;
